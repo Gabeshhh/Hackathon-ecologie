@@ -143,22 +143,33 @@ const styles = {
     position: "relative" as const,
   },
   clickButton: {
-    width: "128px",
-    height: "128px",
-    borderRadius: "50%",
-    background: "linear-gradient(135deg, #3B82F6, #8B5CF6)",
-    border: "4px solid white",
-    boxShadow: "0 4px 12px rgba(0, 0, 0, 0.15)",
+    background: "transparent",
+    border: "none",
     cursor: "pointer",
     display: "flex",
     alignItems: "center",
     justifyContent: "center",
     transition: "all 0.2s ease",
     position: "relative" as const,
+    padding: 0,
+    borderRadius: "12px",
   },
   clickButtonHover: {
     transform: "scale(1.05)",
-    boxShadow: "0 6px 20px rgba(0, 0, 0, 0.2)",
+  },
+  serverImage: {
+    width: "250px",
+    height: "250px",
+    objectFit: "contain" as const,
+    transition: "all 0.2s ease",
+    filter: "drop-shadow(0 0 20px rgba(59, 130, 246, 0.5))",
+    borderRadius: "12px",
+  },
+  serverImageHover: {
+    filter: "drop-shadow(0 0 30px rgba(59, 130, 246, 0.8)) drop-shadow(0 0 60px rgba(139, 92, 246, 0.4))",
+  },
+  serverImageClick: {
+    filter: "drop-shadow(0 0 40px rgba(251, 191, 36, 0.9)) drop-shadow(0 0 80px rgba(59, 130, 246, 0.6))",
   },
   improvementsPanel: {
     background: "white",
@@ -743,10 +754,13 @@ const ClickButton: React.FC<{ onClick: () => void; clickPower: number }> = ({
 }) => {
   const [clickEffects, setClickEffects] = useState<{ id: number }[]>([]);
   const [isHovered, setIsHovered] = useState(false);
+  const [clickEffect, setClickEffect] = useState(false);
 
   const handleClick = () => {
     onClick();
     setClickEffects((prev) => [...prev, { id: Date.now() }]);
+    setClickEffect(true);
+    setTimeout(() => setClickEffect(false), 100);
   };
 
   const removeEffect = (id: number) => {
@@ -762,28 +776,84 @@ const ClickButton: React.FC<{ onClick: () => void; clickPower: number }> = ({
         style={{
           ...styles.clickButton,
           ...(isHovered ? styles.clickButtonHover : {}),
+          ...(clickEffect ? { transform: 'scale(0.95)' } : {})
         }}
-        whileTap={{ scale: 0.95 }}
+        whileTap={{ scale: 0.9 }}
       >
-        <Server size={64} color="white" />
+        <img 
+          src="/server.png" 
+          alt="Serveur IA" 
+          style={{
+            ...styles.serverImage,
+            ...(clickEffect ? styles.serverImageClick : 
+                isHovered ? styles.serverImageHover : {})
+          }}
+        />
+        
+        {clickEffect && (
+          <motion.div
+            initial={{ scale: 0, opacity: 1 }}
+            animate={{ scale: 2, opacity: 0 }}
+            transition={{ duration: 0.3 }}
+            style={{
+              position: 'absolute',
+              inset: 0,
+              border: '2px solid #FBBF24',
+              borderRadius: '12px',
+            }}
+          />
+        )}
       </motion.button>
 
       <AnimatePresence>
         {clickEffects.map((effect) => (
           <motion.div
             key={effect.id}
-            initial={{ y: 0, opacity: 1 }}
-            animate={{ y: -30, opacity: 0 }}
+            initial={{ y: 0, opacity: 1, scale: 0.8 }}
+            animate={{ y: -40, opacity: 0, scale: 1.2 }}
             exit={{ opacity: 0 }}
-            transition={{ duration: 0.5 }}
+            transition={{ duration: 0.4, ease: "easeOut" }}
             onAnimationComplete={() => removeEffect(effect.id)}
             style={{
-              ...styles.clickEffect,
-              left: "50%",
-              transform: "translateX(-50%)",
+              position: 'absolute',
+              top: '-10px',
+              left: '50%',
+              transform: 'translateX(-50%)',
+              pointerEvents: 'none',
+              zIndex: 1000,
+              display: 'flex',
+              flexDirection: 'column',
+              alignItems: 'center',
+              gap: '4px',
             }}
           >
-            +${clickPower}
+            <motion.img
+              src="/dollar.png"
+              alt="Dollar"
+              initial={{ scale: 0.5, opacity: 0 }}
+              animate={{ scale: 1.2, opacity: 1 }}
+              exit={{ scale: 1.5, opacity: 0 }}
+              transition={{ duration: 0.3, ease: "easeOut" }}
+              style={{
+                width: '20px',
+                height: '20px',
+                objectFit: 'contain',
+              }}
+            />
+            <motion.span
+              initial={{ scale: 0.8, opacity: 0 }}
+              animate={{ scale: 1, opacity: 1 }}
+              exit={{ scale: 1.2, opacity: 0 }}
+              transition={{ duration: 0.4, ease: "easeOut" }}
+              style={{
+                color: '#059669',
+                fontWeight: 'bold',
+                fontSize: '1.2rem',
+                textShadow: '2px 2px 4px rgba(0,0,0,0.3)',
+              }}
+            >
+              +${clickPower}
+            </motion.span>
           </motion.div>
         ))}
       </AnimatePresence>
