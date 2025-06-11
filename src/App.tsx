@@ -44,7 +44,7 @@ const styles = {
     display: 'flex',
     flexDirection: 'column' as const,
     gap: '20px',
-    justifyContent: 'center'
+    justifyContent:'center',
   },
   centerColumn: {
     display: 'flex',
@@ -84,15 +84,14 @@ const styles = {
   earthPanel: {
     background: 'white',
     borderRadius: '12px',
-    alignItems:'center',
     boxShadow: '0 4px 6px rgba(0, 0, 0, 0.1)',
-    padding: '4px 2px',
+    padding: '40px 20px',
     textAlign: 'center' as const,
     flex: 1,
   },
   earthEmoji: {
-    width: '250px',
-    height: '250px',
+    width: '120px',
+    height: '120px',
     objectFit: 'contain' as const,
     marginBottom: '20px',
     filter: 'drop-shadow(0 4px 8px rgba(0, 0, 0, 0.2))',
@@ -271,8 +270,8 @@ const styles = {
     background: '#059669',
   },
   progressBar: {
-    width: '350px',
-    height: '15px',
+    width: '128px',
+    height: '8px',
     background: '#E5E7EB',
     borderRadius: '4px',
     overflow: 'hidden' as const,
@@ -284,11 +283,13 @@ const styles = {
   },
   clickEffect: {
     position: 'absolute' as const,
-    top: '0',
+    top: '-10px',
+    left: '50%',
+    transform: 'translateX(-50%)',
     color: '#059669',
     fontWeight: 'bold',
-    fontSize: '1.25rem',
     pointerEvents: 'none' as const,
+    zIndex: 1000,
   },
   footer: {
     textAlign: 'center' as const,
@@ -576,14 +577,16 @@ const EarthPanel: React.FC<{ gameState: GameState }> = ({ gameState }) => {
   );
 };
 
-const ClickButton: React.FC<{ onClick: () => void }> = ({ onClick }) => {
+const ClickButton: React.FC<{ onClick: () => void; clickPower: number }> = ({ onClick, clickPower }) => {
   const [clickEffect, setClickEffect] = useState(false);
   const [isHovered, setIsHovered] = useState(false);
+  const [clickCount, setClickCount] = useState(0);
 
   const handleClick = () => {
     onClick();
     setClickEffect(true);
-    setTimeout(() => setClickEffect(false), 150);
+    setClickCount(prev => prev + 1); // Force re-render with unique key
+    setTimeout(() => setClickEffect(false), 100); // Plus rapide
   };
 
   return (
@@ -627,13 +630,19 @@ const ClickButton: React.FC<{ onClick: () => void }> = ({ onClick }) => {
       <AnimatePresence>
         {clickEffect && (
           <motion.div
-            initial={{ y: 0, opacity: 1 }}
-            animate={{ y: -30, opacity: 0 }}
+            key={`click-${clickCount}`} // Clé unique pour chaque clic
+            initial={{ y: 0, opacity: 1, scale: 0.8 }}
+            animate={{ y: -40, opacity: 0, scale: 1.2 }}
             exit={{ opacity: 0 }}
-            transition={{ duration: 0.5 }}
-            style={styles.clickEffect}
+            transition={{ duration: 0.4, ease: "easeOut" }}
+            style={{
+              ...styles.clickEffect,
+              fontSize: '1.5rem',
+              fontWeight: 'bold',
+              textShadow: '2px 2px 4px rgba(0,0,0,0.3)',
+            }}
           >
-            +$1
+            +${clickPower}
           </motion.div>
         )}
       </AnimatePresence>
@@ -797,7 +806,7 @@ const AIClickerGame: React.FC = () => {
       </div>
 
       <div style={{...styles.leftColumn, gridColumn: '1', gridRow: '2'}}>
-        <ClickButton onClick={handleClick} />
+        <ClickButton onClick={handleClick} clickPower={gameState.clickPower} />
       </div>
 
       <div style={{...styles.centerColumn, gridColumn: '2', gridRow: '2'}}>
