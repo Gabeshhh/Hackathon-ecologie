@@ -800,7 +800,7 @@ const AIClickerGame: React.FC = () => {
       </div>
 
       <div style={{...styles.leftColumn, gridColumn: '1', gridRow: '2'}}>
-        <ClickButton onClick={handleClick} />
+        <ClickButton onClick={handleClick} clickPower={0} />
       </div>
 
       <div style={{...styles.centerColumn, gridColumn: '2', gridRow: '2'}}>
