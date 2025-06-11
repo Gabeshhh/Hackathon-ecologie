@@ -11,6 +11,7 @@ import {
   Sun,
   TreePine,
   Wind,
+  AlertTriangle,
 } from "lucide-react";
 import React, { useCallback, useEffect, useState } from "react";
 
@@ -47,13 +48,56 @@ interface GameState {
   currentMinute: number;
 }
 
+// Messages pédagogiques
+const educationalMessages = [
+  "Une requête GPT-3 peut consommer autant qu'une ampoule allumée pendant une heure",
+  "L'IA générative nécessite des fermes de serveurs entières refroidies à l'eau potable",
+  "Un entraînement de GPT-3 a émis autant de CO₂ qu'un aller-retour Paris–New York",
+  "Une seule image générée par IA peut consommer plus d'électricité qu'un smartphone utilisé toute une journée",
+  "Les fermes de serveurs consomment des millions de litres d'eau potable pour leur refroidissement",
+  "Même en veille, les IA consomment de l'énergie pour rester prêtes à vous répondre"
+];
+
 // CSS Styles
 const styles = {
   container: {
     minHeight: "100vh",
-    padding: "32px 16px",
+    paddingTop: "70px", // Espace pour le bandeau
+    padding: "70px 16px 32px 16px",
     fontFamily: "system-ui, -apple-system, sans-serif",
     transition: "all 1s ease",
+  },
+  banner: {
+    position: "fixed" as const,
+    top: "0",
+    left: "0",
+    right: "0",
+    height: "50px",
+    background: "linear-gradient(90deg, #DC2626, #EA580C, #D97706, #DC2626)",
+    backgroundSize: "200% 100%",
+    animation: "gradientShift 4s ease-in-out infinite",
+    color: "white",
+    display: "flex",
+    alignItems: "center",
+    overflow: "hidden",
+    zIndex: 1000,
+    boxShadow: "0 2px 8px rgba(0,0,0,0.2)",
+  },
+  bannerContent: {
+    display: "flex",
+    alignItems: "center",
+    whiteSpace: "nowrap" as const,
+    animation: "scroll 25s linear infinite",
+    fontSize: "14px",
+    fontWeight: "500",
+    paddingLeft: "100%",
+  },
+  bannerIcon: {
+    marginRight: "12px",
+    flexShrink: 0,
+  },
+  bannerText: {
+    marginRight: "100px", // Espacement entre les messages
   },
   header: {
     textAlign: "center" as const,
@@ -584,102 +628,6 @@ const useGameStore = () => {
     });
   }, []);
 
-  const handleClick = () => {
-    addDollars(gameState.clickPower);
-    addPollution(0.1);
-
-    // Calcul des multiplicateurs
-    const waterMultiplier = gameState.improvements.reduce(
-      (acc, imp) => acc * (1 + (imp.waterEffect || 0) * imp.count),
-      1
-    );
-    const powerMultiplier = gameState.improvements.reduce(
-      (acc, imp) => acc * (1 + (imp.powerEffect || 0) * imp.count),
-      1
-    );
-    const requestMultiplier = gameState.improvements.reduce(
-      (acc, imp) => acc * (1 + (imp.requestEffect || 0) * imp.count),
-      1
-    );
-
-    // Valeurs de base du jeu
-    const baseGameWaterPerRequest = 0.001;
-    const baseGamePowerPerRequest = 0.0003;
-
-    setGameState((prev) => ({
-      ...prev,
-      kilowatts: prev.kilowatts + baseGamePowerPerRequest * powerMultiplier,
-      waterLiters: prev.waterLiters + baseGameWaterPerRequest * waterMultiplier,
-      aiRequests: prev.aiRequests + 1 * requestMultiplier,
-    }));
-  };
-
-  // Mise à jour de l'effet passif
-  useEffect(() => {
-    const interval = setInterval(() => {
-      if (gameState.passiveIncome > 0) {
-        addDollars(gameState.passiveIncome / 10);
-      }
-      if (gameState.pollutionRate !== 0) {
-        addPollution(gameState.pollutionRate / 10);
-      }
-
-      // Mise à jour de la temporalité et des ressources
-      setGameState((prev) => {
-        let newMinute = prev.currentMinute + 1;
-        let newHour = prev.currentHour;
-        let newDay = prev.currentDay;
-
-        if (newMinute >= 60) {
-          newMinute = 0;
-          newHour += 1;
-        }
-        if (newHour >= 24) {
-          newHour = 0;
-          newDay += 1;
-        }
-
-        // Calcul des multiplicateurs
-        const waterMultiplier = prev.improvements.reduce(
-          (acc, imp) => acc * (1 + (imp.waterEffect || 0) * imp.count),
-          1
-        );
-        const powerMultiplier = prev.improvements.reduce(
-          (acc, imp) => acc * (1 + (imp.powerEffect || 0) * imp.count),
-          1
-        );
-        const requestMultiplier = prev.improvements.reduce(
-          (acc, imp) => acc * (1 + (imp.requestEffect || 0) * imp.count),
-          1
-        );
-
-        // Mise à jour des ressources avec les valeurs réelles
-        const baseRequestsPerSecond = 10000;
-        const requestsThisTick =
-          (baseRequestsPerSecond * requestMultiplier) / 10;
-        const waterThisTick = requestsThisTick * 1 * waterMultiplier;
-        const powerThisTick = requestsThisTick * 0.3 * powerMultiplier;
-
-        return {
-          ...prev,
-          currentMinute: newMinute,
-          currentHour: newHour,
-          currentDay: newDay,
-          kilowatts: prev.kilowatts + powerThisTick,
-          waterLiters: prev.waterLiters + waterThisTick,
-          aiRequests: prev.aiRequests + requestsThisTick,
-        };
-      });
-    }, 100);
-
-    return () => clearInterval(interval);
-  }, [
-    gameState.passiveIncome,
-    gameState.pollutionRate,
-    addDollars,
-    addPollution,
-  ]);
-
   return { gameState, setGameState, addDollars, addPollution, buyImprovement };
 };
 
@@ -749,6 +697,46 @@ const formatTime = (day: number, hour: number, minute: number): string => {
 };
 
 // Components
+const EducationalBanner: React.FC = () => {
+  const [currentMessage, setCurrentMessage] = useState(0);
+
+  useEffect(() => {
+    const interval = setInterval(() => {
+      setCurrentMessage((prev) => (prev + 1) % educationalMessages.length);
+    }, 8000); // Change de message toutes les 8 secondes
+
+    return () => clearInterval(interval);
+  }, []);
+
+  return (
+    <>
+      <style>
+        {`
+          @keyframes scroll {
+            0% { transform: translateX(100%); }
+            100% { transform: translateX(-100%); }
+          }
+          
+          @keyframes gradientShift {
+            0%, 100% { background-position: 0% 0%; }
+            50% { background-position: 100% 0%; }
+          }
+        `}
+      </style>
+      <div style={styles.banner}>
+        <div style={styles.bannerContent}>
+          <div style={styles.bannerIcon}>
+            <AlertTriangle size={18} />
+          </div>
+          <div style={styles.bannerText}>
+            {educationalMessages[currentMessage]}
+          </div>
+        </div>
+      </div>
+    </>
+  );
+};
+
 const ClickButton: React.FC<{ onClick: () => void; clickPower: number }> = ({
   onClick,
   clickPower,
@@ -1284,59 +1272,62 @@ const AIClickerGame: React.FC = () => {
   };
 
   return (
-    <div
-      style={{
-        ...styles.container,
-        background: pollutionData.bgColor,
-      }}
-    >
-      <div style={{ maxWidth: "1200px", margin: "0 auto" }}>
-        <div style={styles.header}>
-          <h1 style={styles.title}>L'IA contre la Planète</h1>
-          <p style={styles.subtitle}>
-            Développez votre empire IA... mais à quel prix écologique ?
-          </p>
-        </div>
-
-        <RealWorldStats gameState={gameState} />
-
-        <StatsPanel gameState={gameState} />
-
-        <div style={styles.mainContainer}>
-          <div style={styles.leftSection}>
-            <ClickButton
-              onClick={handleClick}
-              clickPower={gameState.clickPower}
-            />
+    <>
+      <EducationalBanner />
+      <div
+        style={{
+          ...styles.container,
+          background: pollutionData.bgColor,
+        }}
+      >
+        <div style={{ maxWidth: "1200px", margin: "0 auto" }}>
+          <div style={styles.header}>
+            <h1 style={styles.title}>L'IA contre la Planète</h1>
+            <p style={styles.subtitle}>
+              Développez votre empire IA... mais à quel prix écologique ?
+            </p>
           </div>
 
-          <div style={styles.centerSection}>
-            <div style={styles.planetContainer}>
-              <img
-                src={getPlanetImage(gameState.pollution)}
-                alt="Planète"
-                style={styles.planetImage}
+          <RealWorldStats gameState={gameState} />
+
+          <StatsPanel gameState={gameState} />
+
+          <div style={styles.mainContainer}>
+            <div style={styles.leftSection}>
+              <ClickButton
+                onClick={handleClick}
+                clickPower={gameState.clickPower}
+              />
+            </div>
+
+            <div style={styles.centerSection}>
+              <div style={styles.planetContainer}>
+                <img
+                  src={getPlanetImage(gameState.pollution)}
+                  alt="Planète"
+                  style={styles.planetImage}
+                />
+              </div>
+            </div>
+
+            <div style={styles.rightSection}>
+              <ImprovementsPanel
+                improvements={gameState.improvements}
+                dollars={gameState.dollars}
+                onBuy={buyImprovement}
               />
             </div>
           </div>
 
-          <div style={styles.rightSection}>
-            <ImprovementsPanel
-              improvements={gameState.improvements}
-              dollars={gameState.dollars}
-              onBuy={buyImprovement}
-            />
+          <div style={styles.footer}>
+            <p>
+              Une critique ludique de l'impact écologique des intelligences
+              artificielles
+            </p>
           </div>
         </div>
-
-        <div style={styles.footer}>
-          <p>
-            Une critique ludique de l'impact écologique des intelligences
-            artificielles
-          </p>
-        </div>
       </div>
-    </div>
+    </>
   );
 };
 
