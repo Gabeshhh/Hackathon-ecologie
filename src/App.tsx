@@ -30,13 +30,37 @@ interface GameState {
 const styles = {
   container: {
     minHeight: '100vh',
-    padding: '32px 16px',
+    padding: '16px',
     fontFamily: 'system-ui, -apple-system, sans-serif',
     transition: 'all 1s ease',
+    display: 'grid',
+    gridTemplateColumns: '200px 1fr 320px',
+    gridTemplateRows: 'auto 1fr auto',
+    gap: '20px',
+    maxWidth: '1600px',
+    margin: '0 auto',
+  },
+  leftColumn: {
+    display: 'flex',
+    flexDirection: 'column' as const,
+    gap: '20px',
+    justifyContent: 'center'
+  },
+  centerColumn: {
+    display: 'flex',
+    flexDirection: 'column' as const,
+    gap: '20px',
+  },
+  rightColumn: {
+    display: 'flex',
+    flexDirection: 'column' as const,
+    gap: '20px',
   },
   header: {
     textAlign: 'center' as const,
-    marginBottom: '32px',
+    marginBottom: '20px',
+    gridColumn: '1 / -1',
+    gridRow: '1',
   },
   title: {
     fontSize: '2.5rem',
@@ -48,15 +72,36 @@ const styles = {
     color: '#6B7280',
     fontSize: '1rem',
   },
-  statsPanel: {
+  moneyStatsPanel: {
     background: 'white',
-    borderRadius: '8px',
+    borderRadius: '12px',
     boxShadow: '0 4px 6px rgba(0, 0, 0, 0.1)',
-    padding: '24px',
-    marginBottom: '24px',
-    display: 'grid',
-    gridTemplateColumns: 'repeat(auto-fit, minmax(250px, 1fr))',
-    gap: '16px',
+    padding: '20px',
+    display: 'flex',
+    justifyContent: 'space-around',
+    alignItems: 'center',
+  },
+  earthPanel: {
+    background: 'white',
+    borderRadius: '12px',
+    alignItems:'center',
+    boxShadow: '0 4px 6px rgba(0, 0, 0, 0.1)',
+    padding: '4px 2px',
+    textAlign: 'center' as const,
+    flex: 1,
+  },
+  earthEmoji: {
+    width: '250px',
+    height: '250px',
+    objectFit: 'contain' as const,
+    marginBottom: '20px',
+    filter: 'drop-shadow(0 4px 8px rgba(0, 0, 0, 0.2))',
+    transition: 'all 0.5s ease',
+  },
+  earthStatus: {
+    fontSize: '1.5rem',
+    fontWeight: 'bold',
+    marginBottom: '15px',
   },
   statItem: {
     display: 'flex',
@@ -72,34 +117,51 @@ const styles = {
     color: '#6B7280',
   },
   clickButtonContainer: {
+    background: 'transparent',
+    borderRadius: '12px',
+    padding: '20px',
     display: 'flex',
     justifyContent: 'center',
-    marginBottom: '32px',
+    alignItems: 'center',
     position: 'relative' as const,
+    width: '200px',
+    height: '200px',
   },
   clickButton: {
-    width: '128px',
-    height: '128px',
-    borderRadius: '50%',
-    background: 'linear-gradient(135deg, #3B82F6, #8B5CF6)',
-    border: '4px solid white',
-    boxShadow: '0 4px 12px rgba(0, 0, 0, 0.15)',
+    background: 'transparent',
+    border: 'none',
     cursor: 'pointer',
     display: 'flex',
     alignItems: 'center',
     justifyContent: 'center',
     transition: 'all 0.2s ease',
     position: 'relative' as const,
+    padding: 0,
+    borderRadius: '12px',
   },
   clickButtonHover: {
     transform: 'scale(1.05)',
-    boxShadow: '0 6px 20px rgba(0, 0, 0, 0.2)',
+  },
+  serverImage: {
+    width: '300px',
+    height: '300px',
+    objectFit: 'contain' as const,
+    transition: 'all 0.2s ease',
+    filter: 'drop-shadow(0 0 20px rgba(59, 130, 246, 0.5))',
+    borderRadius: '12px',
+  },
+  serverImageHover: {
+    filter: 'drop-shadow(0 0 30px rgba(59, 130, 246, 0.8)) drop-shadow(0 0 60px rgba(139, 92, 246, 0.4))',
+  },
+  serverImageClick: {
+    filter: 'drop-shadow(0 0 40px rgba(251, 191, 36, 0.9)) drop-shadow(0 0 80px rgba(59, 130, 246, 0.6))',
   },
   improvementsPanel: {
     background: 'white',
-    borderRadius: '8px',
+    borderRadius: '12px',
     boxShadow: '0 4px 6px rgba(0, 0, 0, 0.1)',
-    padding: '24px',
+    padding: '20px',
+    height: 'fit-content',
   },
   tabContainer: {
     display: 'flex',
@@ -131,9 +193,9 @@ const styles = {
     borderBottomRightRadius: '8px',
   },
   improvementGrid: {
-    display: 'grid',
-    gridTemplateColumns: 'repeat(auto-fit, minmax(300px, 1fr))',
-    gap: '16px',
+    display: 'flex',
+    flexDirection: 'column' as const,
+    gap: '12px',
   },
   improvementCard: {
     padding: '16px',
@@ -209,11 +271,12 @@ const styles = {
     background: '#059669',
   },
   progressBar: {
-    width: '128px',
-    height: '8px',
+    width: '350px',
+    height: '15px',
     background: '#E5E7EB',
     borderRadius: '4px',
     overflow: 'hidden' as const,
+    margin: '0 auto',
   },
   progressFill: {
     height: '100%',
@@ -229,9 +292,11 @@ const styles = {
   },
   footer: {
     textAlign: 'center' as const,
-    marginTop: '32px',
+    marginTop: '20px',
     fontSize: '0.875rem',
     color: '#6B7280',
+    gridColumn: '1 / -1',
+    gridRow: '3',
   }
 };
 
@@ -420,103 +485,44 @@ const formatPollution = (grams: number): string => {
   return `${Math.floor(grams)}g`;
 };
 
-const getPollutionLevel = (pollution: number): { level: number; color: string; emoji: string; status: string; bgColor: string } => {
+const getPollutionLevel = (pollution: number): { level: number; color: string; image: string; status: string; bgColor: string } => {
   const maxPollution = 1000;
   const percentage = (pollution / maxPollution) * 100;
   
   if (percentage <= 25) return { 
     level: 0, 
     color: '#059669', 
-    emoji: '🌍', 
+    image: '/planete-saine.png', 
     status: 'Équilibré',
     bgColor: 'linear-gradient(135deg, #DBEAFE, #D1FAE5)'
   };
   if (percentage <= 50) return { 
     level: 1, 
     color: '#D97706', 
-    emoji: '🌤️', 
+    image: '/planete-tension.png', 
     status: 'Sous tension',
     bgColor: 'linear-gradient(135deg, #FEF3C7, #FED7AA)'
   };
   if (percentage <= 75) return { 
     level: 2, 
     color: '#EA580C', 
-    emoji: '🌋', 
+    image: '/planete-critique.png', 
     status: 'Critique',
     bgColor: 'linear-gradient(135deg, #FECACA, #FEE2E2)'
   };
   return { 
     level: 3, 
     color: '#DC2626', 
-    emoji: '💀', 
+    image: '/planete-morte.png', 
     status: 'Catastrophique',
     bgColor: 'linear-gradient(135deg, #FCA5A5, #A1A1AA)'
   };
 };
 
 // Components
-const ClickButton: React.FC<{ onClick: () => void }> = ({ onClick }) => {
-  const [clickEffect, setClickEffect] = useState(false);
-  const [isHovered, setIsHovered] = useState(false);
-
-  const handleClick = () => {
-    onClick();
-    setClickEffect(true);
-    setTimeout(() => setClickEffect(false), 150);
-  };
-
+const MoneyStatsPanel: React.FC<{ gameState: GameState }> = ({ gameState }) => {
   return (
-    <div style={styles.clickButtonContainer}>
-      <motion.button
-        onClick={handleClick}
-        onMouseEnter={() => setIsHovered(true)}
-        onMouseLeave={() => setIsHovered(false)}
-        style={{
-          ...styles.clickButton,
-          ...(isHovered ? styles.clickButtonHover : {}),
-          ...(clickEffect ? { animation: 'pulse 0.15s ease-in-out' } : {})
-        }}
-        whileTap={{ scale: 0.95 }}
-      >
-        <Server size={64} color="white" />
-        
-        {clickEffect && (
-          <motion.div
-            initial={{ scale: 0, opacity: 1 }}
-            animate={{ scale: 2, opacity: 0 }}
-            transition={{ duration: 0.3 }}
-            style={{
-              position: 'absolute',
-              inset: 0,
-              border: '2px solid #FBBF24',
-              borderRadius: '50%',
-            }}
-          />
-        )}
-      </motion.button>
-      
-      <AnimatePresence>
-        {clickEffect && (
-          <motion.div
-            initial={{ y: 0, opacity: 1 }}
-            animate={{ y: -30, opacity: 0 }}
-            exit={{ opacity: 0 }}
-            transition={{ duration: 0.5 }}
-            style={styles.clickEffect}
-          >
-            +$1
-          </motion.div>
-        )}
-      </AnimatePresence>
-    </div>
-  );
-};
-
-const StatsPanel: React.FC<{ gameState: GameState }> = ({ gameState }) => {
-  const pollutionData = getPollutionLevel(gameState.pollution);
-  
-  return (
-    <div style={styles.statsPanel}>
+    <div style={styles.moneyStatsPanel}>
       <div style={styles.statItem}>
         <DollarSign size={32} color="#059669" />
         <div>
@@ -540,25 +546,107 @@ const StatsPanel: React.FC<{ gameState: GameState }> = ({ gameState }) => {
           </div>
         </div>
       </div>
+    </div>
+  );
+};
 
-      <div style={styles.statItem}>
-        <div style={{ fontSize: '2rem' }}>{pollutionData.emoji}</div>
-        <div>
-          <div style={{ ...styles.statValue, color: pollutionData.color }}>
-            {pollutionData.status}
-          </div>
-          <div style={styles.progressBar}>
-            <div 
-              style={{
-                ...styles.progressFill,
-                width: `${Math.min(100, (gameState.pollution / 1000) * 100)}%`,
-                background: pollutionData.color
-              }}
-            />
-          </div>
-        </div>
+const EarthPanel: React.FC<{ gameState: GameState }> = ({ gameState }) => {
+  const pollutionData = getPollutionLevel(gameState.pollution);
+  
+  return (
+    <div style={styles.earthPanel}>
+      <img 
+        src={pollutionData.image} 
+        alt={`Planète - ${pollutionData.status}`}
+        style={styles.earthEmoji}
+      />
+      <div style={{ ...styles.earthStatus, color: pollutionData.color }}>
+        {pollutionData.status}
+      </div>
+      <div style={styles.progressBar}>
+        <div 
+          style={{
+            ...styles.progressFill,
+            width: `${Math.min(100, (gameState.pollution / 1000) * 100)}%`,
+            background: pollutionData.color
+          }}
+        />
       </div>
     </div>
+  );
+};
+
+const ClickButton: React.FC<{ onClick: () => void }> = ({ onClick }) => {
+  const [clickEffect, setClickEffect] = useState(false);
+  const [isHovered, setIsHovered] = useState(false);
+
+  const handleClick = () => {
+    onClick();
+    setClickEffect(true);
+    setTimeout(() => setClickEffect(false), 150);
+  };
+
+  return (
+    <div style={styles.clickButtonContainer}>
+      <motion.button
+        onClick={handleClick}
+        onMouseEnter={() => setIsHovered(true)}
+        onMouseLeave={() => setIsHovered(false)}
+        style={{
+          ...styles.clickButton,
+          ...(isHovered ? styles.clickButtonHover : {}),
+          ...(clickEffect ? { transform: 'scale(0.95)' } : {})
+        }}
+        whileTap={{ scale: 0.9 }}
+      >
+        <img 
+          src="/serveur.png" 
+          alt="Serveur IA" 
+          style={{
+            ...styles.serverImage,
+            ...(clickEffect ? styles.serverImageClick : 
+                isHovered ? styles.serverImageHover : {})
+          }}
+        />
+        
+        {clickEffect && (
+          <motion.div
+            initial={{ scale: 0, opacity: 1 }}
+            animate={{ scale: 2, opacity: 0 }}
+            transition={{ duration: 0.3 }}
+            style={{
+              position: 'absolute',
+              inset: 0,
+              border: '2px solid #FBBF24',
+              borderRadius: '12px',
+            }}
+          />
+        )}
+      </motion.button>
+      
+      <AnimatePresence>
+        {clickEffect && (
+          <motion.div
+            initial={{ y: 0, opacity: 1 }}
+            animate={{ y: -30, opacity: 0 }}
+            exit={{ opacity: 0 }}
+            transition={{ duration: 0.5 }}
+            style={styles.clickEffect}
+          >
+            +$1
+          </motion.div>
+        )}
+      </AnimatePresence>
+    </div>
+  );
+};
+
+const StatsPanel: React.FC<{ gameState: GameState }> = ({ gameState }) => {
+  return (
+    <>
+      <MoneyStatsPanel gameState={gameState} />
+      <EarthPanel gameState={gameState} />
+    </>
   );
 };
 
@@ -699,29 +787,33 @@ const AIClickerGame: React.FC = () => {
       ...styles.container,
       background: pollutionData.bgColor
     }}>
-      <div style={{ maxWidth: '1200px', margin: '0 auto' }}>
-        <div style={styles.header}>
-          <h1 style={styles.title}>
-            L'IA contre la Planète
-          </h1>
-          <p style={styles.subtitle}>
-            Développez votre empire IA... mais à quel prix écologique ?
-          </p>
-        </div>
+      <div style={styles.header}>
+        <h1 style={styles.title}>
+          L'IA contre la Planète
+        </h1>
+        <p style={styles.subtitle}>
+          Développez votre empire IA... mais à quel prix écologique ?
+        </p>
+      </div>
 
-        <StatsPanel gameState={gameState} />
-
+      <div style={{...styles.leftColumn, gridColumn: '1', gridRow: '2'}}>
         <ClickButton onClick={handleClick} />
+      </div>
 
+      <div style={{...styles.centerColumn, gridColumn: '2', gridRow: '2'}}>
+        <StatsPanel gameState={gameState} />
+      </div>
+
+      <div style={{...styles.rightColumn, gridColumn: '3', gridRow: '2'}}>
         <ImprovementsPanel
           improvements={gameState.improvements}
           dollars={gameState.dollars}
           onBuy={buyImprovement}
         />
+      </div>
 
-        <div style={styles.footer}>
-          <p>Une critique ludique de l'impact écologique des intelligences artificielles</p>
-        </div>
+      <div style={styles.footer}>
+        <p>Une critique ludique de l'impact écologique des intelligences artificielles</p>
       </div>
     </div>
   );
