@@ -158,8 +158,8 @@ const styles = {
     transform: "scale(1.05)",
   },
   serverImage: {
-    width: "250px",
-    height: "250px",
+    width: "300px",
+    height: "300px",
     objectFit: "contain" as const,
     transition: "all 0.2s ease",
     filter: "drop-shadow(0 0 20px rgba(59, 130, 246, 0.5))",
@@ -1334,11 +1334,13 @@ const AIClickerGame: React.FC = () => {
   const pollutionData = getPollutionLevel(gameState.pollution);
 
   const getPlanetImage = (pollution: number) => {
-    if (pollution >= 1000) return "10.png";
-    if (pollution >= 750) return "35.png";
-    if (pollution >= 500) return "50.png";
-    if (pollution >= 250) return "75.png";
-    return "100.png";
+    // Même calcul que la barre de progression
+    const pollutionPercentage = Math.min(100, (pollution / 1000) * 100);
+    
+    if (pollutionPercentage >= 75) return "100.png";      // 75-100% = Catastrophique
+    if (pollutionPercentage >= 50) return "75.png";      // 50-74% = Critique  
+    if (pollutionPercentage >= 25) return "50.png";      // 25-49% = Sous tension
+    return "25.png";                                     // 0-24% = Équilibré
   };
 
   return (
